@@ -1,0 +1,6 @@
+# Runtime for every script in this repository (CPU is sufficient).
+numpy>=1.24
+scipy>=1.10
+pandas>=2.0
+matplotlib>=3.7
+torch>=2.0

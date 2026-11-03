@@ -1,0 +1,21 @@
+check,quantity,value
+natural frequencies,mean,0.15879345465769565
+natural frequencies,sd,0.015864815676965002
+natural frequencies,q2.5,0.128838158727136
+natural frequencies,q97.5,0.188248627049861
+natural frequencies,fraction inside cluster window,0.99
+long trajectory,record length analysed,74.8
+long trajectory,record length long,599.8000000000001
+long trajectory,dft bin analysed,0.013368983957219251
+long trajectory,dft bin long,0.0016672224074691562
+long trajectory,dominant peak,0.1716666666666667
+long trajectory,peaks >= 25% of max in window,10.0
+bootstrap,n_cluster mean,4.675
+bootstrap,n_cluster sd,0.888314451139102
+bootstrap,fraction with >=2 in cluster,1.0
+bootstrap,centroid mean,0.15683371992249265
+bootstrap,centroid sd,0.001689907084701804
+bootstrap,min gap mean,0.010824600778283714
+bootstrap,min gap sd,0.0036758157972365713
+bootstrap,f near 0.180 sd,0.0038606789095367742
+bootstrap,f near 0.191 sd,0.005017796792470021

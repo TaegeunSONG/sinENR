@@ -1,0 +1,17 @@
+task,method,n,metric_1,metric_2,metric_3,metric_4,components
+"A: spectral recovery (two-tone, clean)","SinENR (M=100, lam1=5e-3)",10,|df| = 0.000201 ± 0.000281,|dphi| = 0.0025 ± 0.00324 rad,|da| = 0.0103 ± 0.00418,recon RMSE = 0.00545 ± 0.00041,2.2 ± 0.42
+"A: spectral recovery (two-tone, clean)","FFT peak-pick, 8x zero-padded",1,|df| = 0.0138,|dphi| = 0.118 rad,|da| = 0.0286,recon RMSE = 0.0951,2
+"A: spectral recovery (two-tone, clean)","FFT peak-pick, no padding",1,|df| = 0.0177,|dphi| = 1.03 rad,|da| = 0.176,recon RMSE = 0.785,2
+"B: missing data, isolated (30x1)",SinENR,10,gap RMSE = 0.00546 ± 0.000721,,,,
+"B: missing data, isolated (30x1)",Cubic spline,10,gap RMSE = 0.0018 ± 0.000956,,,,
+"B: missing data, isolated (30x1)",Linear interp,10,gap RMSE = 0.0484 ± 0.0115,,,,
+"B: missing data, 3 blocks (3x10)",SinENR,10,gap RMSE = 0.0115 ± 0.00384,,,,
+"B: missing data, 3 blocks (3x10)",Cubic spline,10,gap RMSE = 0.203 ± 0.201,,,,
+"B: missing data, 3 blocks (3x10)",Linear interp,10,gap RMSE = 0.626 ± 0.247,,,,
+"B: missing data, one block (1x30)",SinENR,10,gap RMSE = 0.0168 ± 0.0152,,,,
+"B: missing data, one block (1x30)",Cubic spline,10,gap RMSE = 1.39 ± 0.413,,,,
+"B: missing data, one block (1x30)",Linear interp,10,gap RMSE = 1.02 ± 0.294,,,,
+"C: denoising (four-tone, sigma=1)",SinENR (lam1=2e-2),10,RMSE vs clean = 0.385 ± 0.0367,|df| = 0.0405 ± 0.0147,|dphi| = 0.125 ± 0.0338 rad,|da| = 0.0756 ± 0.0217,24 ± 2.9
+"C: denoising (four-tone, sigma=1)",FFT hard-threshold,10,RMSE vs clean = 0.512 ± 0.0119,|df| = 0.14 ± 0.0338,|dphi| = 0.486 ± 0.0245 rad,|da| = 0.0927 ± 0.0213,4 ± 0
+"C: denoising (four-tone, sigma=1)",No denoising,10,RMSE vs clean = 0.999 ± 0.0327,,,,
+"C: denoising (four-tone, sigma=1)","SinENR (lam1=1e-1, RMSE-optimal)",3,RMSE vs clean = 0.257 ± 0.00676,|df| = 0.028 ± 0.00859,|dphi| = 0.135 ± 0.00513 rad,|da| = 0.11 ± 0.0197,9.7 ± 2.1
