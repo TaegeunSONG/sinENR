@@ -86,6 +86,7 @@ repository.
 | `benchmark_baselines.py` | the parametric estimators on tasks A, B and C |
 | `alias_analysis.py` | alias capture as a function of the frequency prior bound |
 | `islet_robustness.py` | the five checks on the close frequency pair |
+| `compare_port.py` | distributional check of the numpy port against the Fortran |
 | `make_figures.py` | Figs. 1–3, 5 and 7 from the saved result tables |
 | `make_fig_missing.py` | Fig. 4 (refits; ~1 min) |
 | `make_fig_benchmark.py` | the accuracy figure |
@@ -113,17 +114,26 @@ changed. Over 2×10⁶ draws they give uniform mean 0.49992 and variance 0.08337
 
 A trajectory from either released version is therefore statistically
 equivalent to, but not bit-identical with, one from the authors' original
-Fortran.
+Fortran. "Statistically equivalent" is measured rather than asserted:
+`compare_port.py` runs both implementations 50 times and compares the
+distributions of three trajectory statistics with a two-sided
+Kolmogorov–Smirnov test.
+
+| quantity | Fortran | Python | KS *p* |
+|---|---|---|---|
+| trajectory s.d. | 0.2482 ± 0.0521 | 0.2361 ± 0.0534 | 0.112 |
+| peak frequency (interpolated) | 0.1611 ± 0.0172 | 0.1640 ± 0.0233 | 0.998 |
+| spectral centroid | 0.1886 ± 0.0104 | 0.1882 ± 0.0109 | 0.998 |
+
+None of the three separates the implementations. The grid-level dominant bin
+is reported by the script too but is not tested: at 1/L = 0.0134 it can take
+only a handful of values, and a KS test on a statistic that discrete is not
+meaningful. Its counts are nearly identical anyway (24/24 trajectories at
+0.160, 19/16 at 0.173). The Fortran seeds itself from the wall clock, so its
+side of the comparison is not reproducible run to run.
 
 ## License
 
 MIT — see `LICENSE`. Every file in this repository is covered by it; the
 Numerical Recipes routines that were not ours to license have been removed, as
 described above.
-
-## Still outstanding
-
-- Both Fortran files compile cleanly (`gfortran -std=legacy`) and the
-  replacement generators were checked statistically, but a full run of
-  `islet_trace` has not been compared against `islet_model.py`. Confirming that
-  the two produce statistically comparable traces is still open.
