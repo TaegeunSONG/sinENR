@@ -5,13 +5,6 @@ sources and the compiled documents are not part of the release, and the
 rendered figures are not committed either, because the scripts here regenerate
 them.*
 
-Code and per-seed data tables for
-
-> J. Kim, W. S. Lee, N. Myoung and T. Song,
-> *Explicitly-Parameterized Neural Representation: An Interpretable Model for
-> Adaptive Frequency–Phase Signal Decomposition.*
-> Target journal: *Machine Learning: Science and Technology* (IOP Publishing).
-
 SinENR is a single-hidden-layer perceptron with a sine activation,
 
 ```
