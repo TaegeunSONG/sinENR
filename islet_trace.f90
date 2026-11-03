@@ -253,70 +253,85 @@ return
 end subroutine derivs
 
 
+! =====================================================================
+!  Pseudo-random number utilities.
+!
+!  These replace the Numerical Recipes ran1 / gasdev / ran_seed of the
+!  original source, which are copyrighted and may not be redistributed.
+!  The external interface is unchanged -- ran1(idum) returns a uniform
+!  deviate on [0,1) and advances the state held in idum, gasdev(idum)
+!  returns a standard normal deviate, and ran_seed(idum) sets idum from
+!  the wall clock -- so no call site needed editing.
+!
+!  Uniform deviates come from Marsaglia's xorshift64 (J. Stat. Softw. 8,
+!  14 (2003)): shifts and exclusive-ors only, so nothing can overflow.
+!  The top 53 bits of the state are scaled into [0,1).  Normal deviates
+!  use the polar method of Marsaglia and Bray (SIAM Rev. 6, 260 (1964)),
+!  here in double precision, where the original used single-precision
+!  temporaries.
+!
+!  This is not the generator the original Fortran used, so a trajectory
+!  from this file is statistically equivalent to, but not bit-identical
+!  with, one from the original -- the same caveat the manuscript records
+!  for the Python port in islet_model.py.
+! =====================================================================
+
+FUNCTION ran1(idum)
+implicit none
+integer*8 :: idum
+real*8 :: ran1
+integer*8 :: x
+integer*8, parameter :: fallback = 4101842887655102017_8
+real*8, parameter :: two53 = 9007199254740992.0d0
+
+x = idum
+if (x == 0_8) x = fallback            ! xorshift cannot escape a zero state
+
+x = ieor(x, ishft(x,  13))
+x = ieor(x, ishft(x,  -7))
+x = ieor(x, ishft(x,  17))
+
+idum = x
+ran1 = real(ishft(x, -11), 8) / two53
+END FUNCTION ran1
+
+
 FUNCTION gasdev(idum)
-INTEGER*8 idum
-REAL*8 gasdev, ran1
-INTEGER iset
-REAL fac,gset,rsq,v1,v2
-SAVE iset,gset
-DATA iset/0/
-if (iset==0) then
-  do
-    v1=2.*ran1(idum)-1.
-    v2=2.*ran1(idum)-1.
-    rsq=v1**2+v2**2
-    if(.NOT.(rsq>=1..or.rsq==0.)) EXIT
-  end do
-  fac=sqrt(-2.*log(rsq)/rsq)
-  gset=v1*fac
-  gasdev=v2*fac
-  iset=1
-else
-  gasdev=gset
-  iset=0
-endif
+implicit none
+integer*8 :: idum
+real*8 :: gasdev
+real*8, external :: ran1
+real*8 :: u1, u2, s, f
+real*8, save :: spare = 0.0d0
+logical, save :: have_spare = .false.
+
+if (have_spare) then
+  have_spare = .false.
+  gasdev = spare
+  return
+end if
+
+s = 0.0d0
+do while (s >= 1.0d0 .or. s <= 0.0d0)
+  u1 = 2.0d0*ran1(idum) - 1.0d0
+  u2 = 2.0d0*ran1(idum) - 1.0d0
+  s  = u1*u1 + u2*u2
+end do
+
+f = sqrt(-2.0d0*log(s)/s)
+spare = u1*f
+have_spare = .true.
+gasdev = u2*f
 END FUNCTION gasdev
 
 
-FUNCTION ran1(idum)
-INTEGER*8 idum
-INTEGER IA,IM,IQ,IR,NTAB,NDIV
-REAL*8 ran1
-REAL AM,EPS,RNMX
-PARAMETER (IA=16807,IM=2147483647,AM=1./IM,IQ=127773,IR=2836)
-PARAMETER (NTAB=32,NDIV=1+(IM-1)/NTAB,EPS=1.2e-7,RNMX=1.-EPS)
-INTEGER j,k,iv(NTAB),iy
-SAVE iv,iy
-DATA iv /NTAB*0/, iy /0/
-if (idum.le.0.or.iy.eq.0) then
-  idum=max(-idum,1)
-!  idum=max(idum,1)
-  do 11 j=NTAB+8,1,-1
-   k=idum/IQ
-   idum=IA*(idum-k*IQ)-IR*k
-    if (idum.lt.0) idum=idum+IM
-    if (j.le.NTAB) iv(j)=idum
-11   continue
-  iy=iv(1)
-endif
-k=idum/IQ
-idum=IA*(idum-k*IQ)-IR*k
-if (idum.lt.0) idum=idum+IM
-j=1+iy/NDIV
-iy=iv(j)
-iv(j)=idum
-ran1=min(AM*iy,RNMX)
-return
-END
-
 subroutine ran_seed(idum)
 implicit none
-integer*8 idum
-integer,DIMENSION(8) :: time
-integer,DIMENSION(50) :: seed
-CALL DATE_AND_TIME(values=time)     ! Get the current time
-seed(1) = time(4)*(360000*time(5) + 6000*time(6) + 100*time(7) + time(8))
-CALL RANDOM_SEED(PUT=seed)
-idum=seed(1)
-end
+integer*8, intent(out) :: idum
+integer, dimension(8) :: t
+call date_and_time(values=t)
+idum = int(t(5),8)*3600000_8 + int(t(6),8)*60000_8 &
+     + int(t(7),8)*1000_8    + int(t(8),8) + 1_8
+end subroutine ran_seed
+
       

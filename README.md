@@ -93,17 +93,37 @@ repository.
 | `results/` | per-seed result tables for every number reported in the paper |
 | `requirements.txt` | runtime dependencies |
 
-## Two deliberate departures in the islet port
+## The islet model: what differs from the original Fortran
 
-The Fortran uses Numerical-Recipes generators seeded from the system clock;
-the Python port uses a seeded PCG64 generator so that a run is reproducible, and
-optionally discards a burn-in interval. A trajectory from the port is therefore
-statistically equivalent to, but not bit-identical with, one from the Fortran.
-The equations, parameters, integrator and sampling interval are those of the
-original. Both sources are included.
+The equations, parameters, RK4 integrator and sampling interval are those of
+the original in every version here. The random number generation is not, in
+two places, and both are deliberate.
+
+`islet_model.py` uses a seeded PCG64 generator so that a run is reproducible,
+where the original seeded Numerical Recipes routines from the system clock, and
+it can discard a burn-in interval, which the original driver does not.
+
+`islet_module.f90` and `islet_trace.f90` as released here have had those
+Numerical Recipes routines (`ran1`, `gasdev`) replaced, because that code is
+copyrighted and cannot be redistributed. The substitutes are Marsaglia's
+xorshift64 for uniform deviates and the Marsaglia–Bray polar method for normal
+deviates, in double precision, behind the same interface — no call site
+changed. Over 2×10⁶ draws they give uniform mean 0.49992 and variance 0.08337
+(against 0.5 and 1/12) and normal mean −0.0004 and variance 1.0012.
+
+A trajectory from either released version is therefore statistically
+equivalent to, but not bit-identical with, one from the authors' original
+Fortran.
+
+## License
+
+MIT — see `LICENSE`. Every file in this repository is covered by it; the
+Numerical Recipes routines that were not ours to license have been removed, as
+described above.
 
 ## Still outstanding
 
-- `gfortran` was not available where the port was written, so the original
-  Fortran has not been executed against `islet_model.py`. Running it once and
-  confirming the two give statistically comparable traces is still open.
+- Both Fortran files compile cleanly (`gfortran -std=legacy`) and the
+  replacement generators were checked statistically, but a full run of
+  `islet_trace` has not been compared against `islet_model.py`. Confirming that
+  the two produce statistically comparable traces is still open.
