@@ -85,9 +85,7 @@ def main():
     ax.set_yscale("log"); ax.set_xticks(range(3))
     ax.set_xticklabels(["SinENR", "FFT\n8$\\times$ pad", "FFT\npeak"], fontsize=TICK)
     ax.set_ylabel("mean $|\\hat{f}-f|$  (cycles)")
-    ax.set_title("69$\\times$ finer frequency\nresolution"); ax.set_xlim(-0.6, 2.6)
-    ax.text(-0.5, 2.2e-4, "lower = better", fontsize=TICK, color=META_GREY,
-            rotation=90, va="bottom")
+    ax.set_xlim(-0.6, 2.6)
     panel_letter(ax, "a", dx=-0.40)
 
     ax = axes[1]
@@ -97,7 +95,6 @@ def main():
     ax.plot(xC[sel], cleanC[sel], color=C_TRUE, lw=0.9, label="clean")
     ax.plot(xC[sel], predC[sel], color=C_ENR, lw=1.1, label="SinENR")
     ax.set_xlabel("x"); ax.set_ylabel("y"); ax.margins(0.04)
-    ax.set_title("Four-tone denoising\n(first 25 % of record)")
     ax.legend(loc="lower center", ncol=3, handlelength=1.1, fontsize=TICK,
               columnspacing=0.8)
     panel_letter(ax, "b", dx=-0.38)
@@ -112,7 +109,6 @@ def main():
         ax.plot([i - .24, i + .24], [np.median(v)] * 2, color="black", lw=1.6)
     ax.set_xticks(range(3)); ax.set_xticklabels(["none", "FFT\ntop-4", "SinENR"], fontsize=TICK)
     ax.set_ylabel("RMSE vs clean signal")
-    ax.set_title("25 % lower error\nthan FFT top-4")
     ax.set_xlim(-0.6, 2.6); ax.margins(y=0.12)
     panel_letter(ax, "c", dx=-0.40)
 

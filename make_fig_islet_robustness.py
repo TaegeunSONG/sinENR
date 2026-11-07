@@ -85,13 +85,10 @@ def main():
     yb = ymax * 0.47
     ax.annotate("", xy=(0.2185 + bin_short / 2, yb), xytext=(0.2185 - bin_short / 2, yb),
                 arrowprops=dict(arrowstyle="<->", lw=0.7, color=C_FFT))
-    ax.text(0.2185, yb + ymax * 0.035, "$1/L$ of the\nanalysed record",
-            fontsize=TICK, ha="center", va="bottom", color=C_FFT)
     ax.set_xlim(*CLUSTER)
     ax.set_ylim(0, ymax)
     ax.set_xlabel("frequency  (cycles/time)")
     ax.set_ylabel("amplitude")
-    ax.set_title("Long record shows a band,\nnot two lines")
     ax.legend(loc="upper left", fontsize=TICK - 0.5, handlelength=1.2)
     panel_letter(ax, "a")
 
@@ -109,7 +106,6 @@ def main():
     ax.set_ylabel("oscillator count")
     for f0 in PAIR:
         ax.axvline(f0, color=C_FFT, ls=":", lw=0.8)
-    ax.set_title("Cluster spans the natural-\nfrequency distribution")
     ax.legend(loc="upper left", fontsize=TICK - 0.5, handlelength=1.2)
     panel_letter(ax, "b")
 
@@ -135,7 +131,6 @@ def main():
     ax.set_xlabel("record length  $N$  (samples)")
     ax.set_ylabel("frequency  (cycles/time)")
     ax.set_ylim(*CLUSTER)
-    ax.set_title("Individual lines move,\nthe centroid does not")
     ax.legend(loc="upper right", fontsize=TICK - 0.5, handlelength=1.2)
     panel_letter(ax, "c")
 
@@ -151,11 +146,6 @@ def main():
     ax.set_xlabel("frequency  (cycles/time)")
     ax.set_ylabel("bootstrap refits")
     sd_lo, sd_hi = boot.f_near_lo.std(), boot.f_near_hi.std()
-    ax.text(0.02, 0.98,
-            f"$\\Delta f$ claimed $=0.0104$\n"
-            f"s.d. $={sd_lo:.4f}$, ${sd_hi:.4f}$",
-            transform=ax.transAxes, va="top", ha="left", fontsize=TICK)
-    ax.set_title("Scatter is comparable\nto the claimed gap")
     ax.legend(loc="upper right", fontsize=TICK - 0.5, handlelength=1.2)
     panel_letter(ax, "d")
 

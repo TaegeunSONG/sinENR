@@ -2,12 +2,14 @@
 Regenerate every manuscript figure as vector PDF (IOP's preferred format) and
 PNG, from the saved result files -- no refitting required.
 
-Inputs : figdata.npz, alias_landscape.npz, results_raw.csv,
-         results_B2_contiguous.csv, results_C2_lambda.csv,
+Inputs : figdata.npz (make_figdata.py), alias_landscape.npz
+         (alias_analysis.py), and the per-seed tables in results/ --
+         results_raw.csv, results_B2_contiguous.csv, results_C2_lambda.csv,
          sparsity_tradeoff.csv, results_alias.csv
-Outputs: paper/figN_*.pdf and .png
+Outputs: figN_*.pdf and .png beside this script, which is where the
+         manuscript's \includegraphics looks for them.
 
-Usage:  python make_figures.py
+Usage:  python make_figdata.py && python alias_analysis.py && python make_figures.py
 """
 from __future__ import annotations
 
@@ -20,8 +22,26 @@ import pandas as pd
 from matplotlib.gridspec import GridSpec
 from matplotlib.ticker import NullFormatter
 
-OUT = "paper"
-os.makedirs(OUT, exist_ok=True)
+HERE = os.path.dirname(os.path.abspath(__file__))
+OUT = HERE
+
+
+def _csv(name):
+    """Result tables live in results/; fall back to the script directory."""
+    for cand in (os.path.join(HERE, "results", name), os.path.join(HERE, name)):
+        if os.path.exists(cand):
+            return cand
+    raise FileNotFoundError(
+        f"{name} not found in results/ or {HERE}. Run benchmark.py, "
+        f"benchmark_extra.py and alias_analysis.py first.")
+
+
+def _npz(name):
+    path = os.path.join(HERE, name)
+    if not os.path.exists(path):
+        maker = "make_figdata.py" if name == "figdata.npz" else "alias_analysis.py"
+        raise FileNotFoundError(f"{name} not found; run {maker} first.")
+    return path
 
 C_ENR, C_FFT, C_SPL, C_TRUE, META_GREY = "#0072B2", "#D55E00", "#009E73", "#444444", "#888888"
 BASE, SECOND, TICK = 8, 7, 6
@@ -69,13 +89,13 @@ def save(fig, stem):
 
 
 # -------------------------------------------------------------------------
-D = np.load("figdata.npz")
-LS = np.load("alias_landscape.npz")
-raw = pd.read_csv("results_raw.csv")
-b2 = pd.read_csv("results_B2_contiguous.csv")
-c2 = pd.read_csv("results_C2_lambda.csv")
-tr = pd.read_csv("sparsity_tradeoff.csv")
-al = pd.read_csv("results_alias.csv")
+D = np.load(_npz("figdata.npz"))
+LS = np.load(_npz("alias_landscape.npz"))
+raw = pd.read_csv(_csv("results_raw.csv"))
+b2 = pd.read_csv(_csv("results_B2_contiguous.csv"))
+c2 = pd.read_csv(_csv("results_C2_lambda.csv"))
+tr = pd.read_csv(_csv("sparsity_tradeoff.csv"))
+al = pd.read_csv(_csv("results_alias.csv"))
 A = raw[raw.task == "A"]; B = raw[raw.task == "B"]; Cc = raw[raw.task == "C"]
 fft_err = float(A[A.method == "FFT (8x zero-pad)"].f_err.iloc[0]) * 1e3
 fft_c = float(Cc[Cc.method == "FFT hard-threshold"].denoise_rmse.mean())
@@ -93,14 +113,12 @@ def fig_properties():
             label="samples (N = 100)")
     ax.plot(D["xd"], D["pred_A"], color=C_ENR, lw=1.2, label="SinENR")
     ax.set_xlabel("x"); ax.set_ylabel("y"); ax.margins(0.04)
-    ax.set_title("SinENR interpolates the two-tone signal")
     ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.30), ncol=3, handlelength=1.4)
     panel_letter(ax, "a", dx=-0.10)
 
     ax = fig.add_subplot(gs[0, 2])
     ax.semilogy(np.arange(1, len(D["hist_A"]) + 1), D["hist_A"], color=C_ENR, lw=0.9)
     ax.set_xlabel("epoch"); ax.set_ylabel("training MSE")
-    ax.set_title("Plateaus and\nsharp drops")
     ax.set_xticks([0, 1500, 3000]); ax.margins(x=0.04)
     panel_letter(ax, "b", dx=-0.44)
 
@@ -112,19 +130,24 @@ def fig_properties():
         ax.axvline(ft, color=C_TRUE, ls=":", lw=0.8, zorder=0)
     ax.text(1.5, 1.12, "true $f$", color=C_TRUE, fontsize=TICK, ha="center")
     ax.set_xlabel("frequency  $|W_1^j|/2\\pi L$"); ax.set_ylabel("amplitude  $|W_2^j|$")
-    ax.set_title("2 of 100 units survive"); ax.set_ylim(-0.06, 1.28); ax.margins(x=0.06)
+    ax.set_ylim(-0.06, 1.28); ax.margins(x=0.06)
     ax.legend(loc="center right", handlelength=1.0, handletextpad=0.3)
     panel_letter(ax, "c", dx=-0.32)
 
     ax = fig.add_subplot(gs[1, 1])
-    im = ax.pcolormesh(D["W1g"], D["W2g"], np.log10(D["Z"]), cmap="viridis",
-                       shading="auto", rasterized=True)
-    cb = fig.colorbar(im, ax=ax, pad=0.04, fraction=0.05)
-    cb.set_label("$\\log_{10}$ MSE", fontsize=TICK, labelpad=1)
-    cb.ax.tick_params(labelsize=TICK)
-    ax.set_xlabel("$W_1^1$"); ax.set_ylabel("$W_2^1$")
-    ax.set_title("Rugged, multi-valley")
-    panel_letter(ax, "d", dx=-0.44)
+    # profile of the minimal-model slice along the frequency axis, with the
+    # amplitude minimized out: this is where the local-minimum structure of
+    # finite-record sinusoidal fitting is visible.
+    w1 = D["W1g"][0, :]
+    prof = D["Z"].min(axis=0)
+    ax.semilogy(w1, prof, color=C_ENR, lw=0.9)
+    loc = [i for i in range(1, len(prof) - 1)
+           if prof[i] < prof[i - 1] and prof[i] < prof[i + 1]]
+    ax.plot(w1[loc], prof[loc], "v", ms=2.6, color=C_TRUE, mew=0, clip_on=False)
+    ax.set_xlabel("$W_1^1$")
+    ax.set_ylabel("MSE (min over $W_2^1$)")
+    ax.margins(x=0.03)
+    panel_letter(ax, "d", dx=-0.52)
 
     ax = fig.add_subplot(gs[1, 2])
     dr, rc = D["draws"], D["ref_comp"]
@@ -140,7 +163,6 @@ def fig_properties():
             fontsize=TICK, ha="center", va="top")
     ax.axhline(0, color=C_TRUE, lw=0.6, zorder=0)
     ax.set_ylabel("$\\hat{f}-f$   ($10^{-3}$ cycles)")
-    ax.set_title("Bootstrap spread,\n60 refits")
     ax.set_ylim(-5, 17); ax.set_xlim(-0.5, 1.5)
     panel_letter(ax, "e", dx=-0.50)
     save(fig, "fig1_properties")
@@ -160,7 +182,6 @@ def fig_recovery():
     ax.plot(D["xd"], D["splineB"], color=C_SPL, lw=1.1, ls="--", label="cubic spline")
     ax.plot(D["xd"], D["predB"], color=C_ENR, lw=1.2, label="SinENR")
     ax.set_xlabel("x"); ax.set_ylabel("y"); ax.set_ylim(-3.4, 2.6); ax.margins(x=0.02)
-    ax.set_title("SinENR bridges a contiguous gap")
     ax.legend(loc="lower center", ncol=2, handlelength=1.4, fontsize=TICK)
     panel_letter(ax, "a", dx=-0.16)
 
@@ -171,7 +192,6 @@ def fig_recovery():
     ax.plot(D["xC"][sel], D["cleanC"][sel], color=C_TRUE, lw=0.9, label="clean signal")
     ax.plot(D["xC"][sel], D["predC"][sel], color=C_ENR, lw=1.1, label="SinENR")
     ax.set_xlabel("x"); ax.set_ylabel("y"); ax.margins(0.04)
-    ax.set_title("Four-tone denoising (first 25 % of record)")
     ax.legend(loc="lower center", ncol=3, handlelength=1.3, fontsize=TICK)
     panel_letter(ax, "b", dx=-0.16)
     fig.subplots_adjust(wspace=0.32)
@@ -195,9 +215,7 @@ def fig_benchmark():
     ax.set_yscale("log"); ax.set_xticks(range(3))
     ax.set_xticklabels(["SinENR", "FFT\n8$\\times$ pad", "FFT\npeak"], fontsize=TICK)
     ax.set_ylabel("mean $|\\hat{f}-f|$  (cycles)")
-    ax.set_title("69$\\times$ finer frequency\nresolution"); ax.set_xlim(-0.6, 2.6)
-    ax.text(-0.5, 2.2e-4, "lower = better", fontsize=TICK, color=META_GREY,
-            rotation=90, va="bottom")
+    ax.set_xlim(-0.6, 2.6)
     panel_letter(ax, "a", dx=-0.40)
 
     ax = axes[1]
@@ -207,7 +225,6 @@ def fig_benchmark():
     ax.plot(D["xC"][sel], D["cleanC"][sel], color=C_TRUE, lw=0.9, label="clean")
     ax.plot(D["xC"][sel], D["predC"][sel], color=C_ENR, lw=1.1, label="SinENR")
     ax.set_xlabel("x"); ax.set_ylabel("y"); ax.margins(0.04)
-    ax.set_title("Four-tone denoising\n(first 25 % of record)")
     ax.legend(loc="lower center", ncol=3, handlelength=1.1, fontsize=TICK,
               columnspacing=0.8)
     panel_letter(ax, "b", dx=-0.38)
@@ -222,7 +239,6 @@ def fig_benchmark():
         ax.plot([i - .24, i + .24], [np.median(v)] * 2, color="black", lw=1.6)
     ax.set_xticks(range(3)); ax.set_xticklabels(["none", "FFT\ntop-4", "SinENR"], fontsize=TICK)
     ax.set_ylabel("RMSE vs clean signal")
-    ax.set_title("25 % lower error\nthan FFT top-4")
     ax.set_xlim(-0.6, 2.6); ax.margins(y=0.12)
     panel_letter(ax, "c", dx=-0.40)
     fig.subplots_adjust(wspace=0.46)
@@ -243,7 +259,6 @@ def fig_sparsity():
     ax.text(2.15, 0.0145, "true model\norder K = 2", fontsize=TICK, color=C_TRUE)
     ax.set_yscale("log"); ax.set_xlabel("components retained")
     ax.set_ylabel("reconstruction RMSE")
-    ax.set_title("Two-tone: exact order costs\n3.7$\\times$ the error floor")
     panel_letter(ax, "a", dx=-0.17)
 
     ax = axes[1]
@@ -256,7 +271,6 @@ def fig_sparsity():
     ax.axvline(4, color=C_TRUE, ls=":", lw=0.9)
     ax.text(4.5, 0.52, "true model\norder K = 4", fontsize=TICK, color=C_TRUE)
     ax.set_xlabel("components retained"); ax.set_ylabel("RMSE vs clean signal")
-    ax.set_title("Four-tone, $\\sigma$ = 1: parsimony\nand accuracy conflict")
     ax.margins(0.08)
     panel_letter(ax, "b", dx=-0.17)
     fig.subplots_adjust(wspace=0.30)
@@ -284,7 +298,6 @@ def fig_alias():
         ax.plot(fa, 1.6e-6, "v", ms=3, color=C_TRUE, clip_on=False)
     ax.set_xlabel("frequency of one atom, $f$  (cycles)")
     ax.set_ylabel("training MSE")
-    ax.set_title("Equal-depth minima at every\nalias of $f$ = 0.7")
     ax.set_ylim(1e-6, 60)
     ax.legend(loc="upper right", fontsize=TICK, handlelength=1.2, borderpad=0.2)
     panel_letter(ax, "a", dx=-0.34)
@@ -299,7 +312,6 @@ def fig_alias():
     ax.set_xticklabels([f"{v:.2g}" for v in summ.f_max / f_nyq], fontsize=TICK)
     ax.set_xlabel("frequency prior bound  $f_\\max / f_\\mathrm{Nyq}$")
     ax.set_ylabel("fraction of components")
-    ax.set_title("Alias capture matches the\nequal-basin prediction")
     ax.set_ylim(0, 1.42)
     ax.legend(loc="upper right", fontsize=5.5, handlelength=1.1, borderpad=0.2)
     panel_letter(ax, "b", dx=-0.30)
@@ -313,7 +325,6 @@ def fig_alias():
     ax.xaxis.set_minor_formatter(NullFormatter())
     ax.set_xlabel("frequency prior bound  $f_\\max / f_\\mathrm{Nyq}$")
     ax.set_ylabel("error"); ax.set_ylim(1e-5, 6)
-    ax.set_title("In-sample loss flat while\ngeneralization collapses")
     ax.legend(loc="center left", fontsize=TICK, handlelength=1.3, borderpad=0.2)
     panel_letter(ax, "c", dx=-0.34)
     fig.subplots_adjust(wspace=0.44)
@@ -322,4 +333,4 @@ def fig_alias():
 
 if __name__ == "__main__":
     fig_properties(); fig_benchmark(); fig_sparsity(); fig_alias()
-    print("all figures written to ./paper/")
+    print(f"all figures written to {OUT}")

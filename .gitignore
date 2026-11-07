@@ -53,3 +53,8 @@ refs.bib
 ALIASING.md
 BENCHMARK.md
 CONSISTENCY.md
+
+# Figure-data caches: regenerate with `python make_figdata.py` (~3 min)
+figdata.npz
+figdata_denoise.npz
+alias_landscape.npz

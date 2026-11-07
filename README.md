@@ -63,10 +63,17 @@ python benchmark_baselines.py   # NLS / MUSIC / ESPRIT / matrix pencil on tasks 
 python alias_analysis.py        # alias capture vs frequency prior bound
 python islet_robustness.py      # the five close-pair checks (~3 min)
 
-python make_figures.py                  # Figs. 1-3, 5, 7
+python make_figdata.py                  # fits behind Figs. 2 and 3 (~3 min)
 python make_fig_missing.py              # Fig. 4 (refits; ~1 min)
 python make_fig_islet_robustness.py     # Fig. 6
+python make_figures.py                  # Figs. 1-3, 5, 7
 ```
+
+`make_figdata.py` writes `figdata.npz`, `figdata_denoise.npz` and
+`alias_landscape.npz`, the per-fit arrays that `make_figures.py` reads for the
+panels that are not summarised in a CSV. Those caches are regenerable and not
+committed. Run `make_figures.py` last: it and `make_fig_benchmark.py` both
+write `fig3_benchmark.pdf`, and the later run wins.
 
 Every script routes its randomness through an explicit seed, so the reported
 values reproduce exactly. The tables in `results/` are the ones behind every
@@ -87,6 +94,7 @@ repository.
 | `alias_analysis.py` | alias capture as a function of the frequency prior bound |
 | `islet_robustness.py` | the five checks on the close frequency pair |
 | `compare_port.py` | distributional check of the numpy port against the Fortran |
+| `make_figdata.py` | the per-fit arrays behind Figs. 2 and 3 (`*.npz`) |
 | `make_figures.py` | Figs. 1–3, 5 and 7 from the saved result tables |
 | `make_fig_missing.py` | Fig. 4 (refits; ~1 min) |
 | `make_fig_benchmark.py` | the accuracy figure |

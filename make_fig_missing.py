@@ -152,7 +152,6 @@ def main():
     ax.set_xlabel("x")
     ax.tick_params(axis="y", length=0)
     ax.spines["left"].set_visible(False)
-    ax.set_title("30 % missing, three ways")
     ax.vlines([], [], [], color=C_ENR, lw=1.6, label="observed")
     ax.vlines([], [], [], color="#DCDCDC", lw=1.6, label="missing")
     ax.legend(loc="upper right", bbox_to_anchor=(1.0, 1.10), ncol=2,
@@ -174,7 +173,6 @@ def main():
     lo, hi = max(0, g0 - 0.55), min(X_MAX, g1 + 0.55)
     ax.set_xlim(lo, hi); ax.set_ylim(-2.6, 2.3)
     ax.set_xlabel("x"); ax.set_ylabel("y")
-    ax.set_title("Across the block")
     ax.legend(loc="lower center", ncol=2, handlelength=1.3, fontsize=TICK,
               columnspacing=1.0)
     panel_letter(ax, "b", dx=-0.17)
@@ -197,12 +195,9 @@ def main():
     ax.set_yscale("log"); ax.set_xticks(range(3))
     ax.set_xticklabels(data.keys(), fontsize=TICK)
     ax.set_ylabel("gap RMSE"); ax.set_xlim(-0.55, 2.55)
-    ax.set_title("Spline wins only when\nthe gaps are isolated")
     for m, c in series.items():
         ax.plot([], [], color=c, lw=2.0, label=m)
     ax.legend(loc="lower right", fontsize=TICK, handlelength=1.1)
-    ax.text(-0.46, 2.6e-3, "lower = better", fontsize=TICK, color=META_GREY,
-            rotation=90, va="bottom")
     panel_letter(ax, "c", dx=-0.17)
 
     # ---- (d) the islet trace with the block withheld -----------------
@@ -216,7 +211,6 @@ def main():
     ax.text((t0 + t1) / 2, 0.63, "withheld", fontsize=TICK, ha="center", color="#666666")
     ax.set_xlabel("time"); ax.set_ylabel("$g-\\langle g\\rangle$")
     ax.set_ylim(-0.72, 0.78); ax.margins(x=0.02)
-    ax.set_title("Islet model: 30 % withheld\nin one block")
     panel_letter(ax, "d", dx=-0.26)
 
     # ---- (e) reconstruction across the physiological gap -------------
@@ -229,7 +223,6 @@ def main():
     ax.plot(isl["dense"], isl["pred_dense"], color=C_ENR, lw=1.1, label="SinENR")
     ax.set_xlim(t0 - 7, t1 + 7); ax.set_ylim(-0.78, 1.45)
     ax.set_xlabel("time"); ax.set_ylabel("$g-\\langle g\\rangle$")
-    ax.set_title("Spline diverges across\na wide gap")
     ax.legend(loc="upper center", ncol=4, fontsize=5.6, handlelength=0.9,
               columnspacing=0.6, handletextpad=0.35,
               bbox_to_anchor=(0.46, 1.055))
@@ -251,10 +244,8 @@ def main():
     ax.hlines(yb, xb, xb + dfbin, color=C_FFT, lw=1.0)
     ax.vlines([xb, xb + dfbin], yb - ymax * 0.025, yb + ymax * 0.025,
               color=C_FFT, lw=1.0)
-    ax.text(xb + dfbin * 0.5, yb + ymax * 0.05,
-            "one DFT grid step $=1/L$", fontsize=TICK, ha="center", color=C_FFT)
-    ax.text((p0[0] + p1[0]) * 0.5, max(p0[2], p1[2]) + ymax * 0.05,
-            f"$\\Delta f={dsep:.4f}$", fontsize=TICK, ha="center", color=C_ENR)
+    print(f"  panel f: DFT grid step 1/L = {dfbin:.4f}, closest pair "
+          f"{p0[0]:.4f} / {p1[0]:.4f}, separation {dsep:.4f}")
     for pk in (p0, p1):
         ax.annotate("", xy=(pk[0], pk[2] + ymax * 0.03),
                     xytext=(pk[0], yb - ymax * 0.04),
@@ -262,7 +253,6 @@ def main():
     ax.set_xlim(0.118, 0.238); ax.set_ylim(0, ymax)
     ax.set_xlabel("recovered frequency  (cycles/time)")
     ax.set_ylabel("amplitude  $|W_2^{\\,j}|$")
-    ax.set_title("Two components inside\none DFT grid step")
     panel_letter(ax, "f", dx=-0.28)
     print(f"  islet cluster f: {np.round(cl[:, 0], 4)}"
           f" | pairwise gaps {np.round(np.diff(cl[:, 0]), 5)}"
