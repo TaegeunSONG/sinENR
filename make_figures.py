@@ -130,8 +130,9 @@ def fig_properties():
         ax.axvline(ft, color=C_TRUE, ls=":", lw=0.8, zorder=0)
     ax.text(1.5, 1.12, "true $f$", color=C_TRUE, fontsize=TICK, ha="center")
     ax.set_xlabel("frequency  $|W_1^j|/2\\pi L$"); ax.set_ylabel("amplitude  $|W_2^j|$")
-    ax.set_ylim(-0.06, 1.28); ax.margins(x=0.06)
-    ax.legend(loc="center right", handlelength=1.0, handletextpad=0.3)
+    ax.set_ylim(-0.06, 1.80); ax.margins(x=0.06)
+    ax.legend(loc="upper left", ncol=2, handlelength=1.0, handletextpad=0.3,
+              columnspacing=1.0, borderaxespad=0.2)
     panel_letter(ax, "c", dx=-0.32)
 
     ax = fig.add_subplot(gs[1, 1])
@@ -324,8 +325,9 @@ def fig_alias():
     ax.set_xticklabels([f"{v:.2g}" for v in summ.f_max / f_nyq], fontsize=TICK)
     ax.xaxis.set_minor_formatter(NullFormatter())
     ax.set_xlabel("frequency prior bound  $f_\\max / f_\\mathrm{Nyq}$")
-    ax.set_ylabel("error"); ax.set_ylim(1e-5, 6)
-    ax.legend(loc="center left", fontsize=TICK, handlelength=1.3, borderpad=0.2)
+    ax.set_ylabel("error"); ax.set_ylim(1e-5, 60)
+    ax.legend(loc="upper left", fontsize=TICK, handlelength=1.3, borderpad=0.2,
+              handletextpad=0.4, borderaxespad=0.25, labelspacing=0.3)
     panel_letter(ax, "c", dx=-0.34)
     fig.subplots_adjust(wspace=0.44)
     save(fig, "fig5_alias")

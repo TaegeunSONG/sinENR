@@ -171,11 +171,12 @@ def main():
     ax.plot(xd, cs(xd), color=C_SPL, lw=1.1, ls="--", label="cubic spline")
     ax.plot(xd, predict(fits[1], xd), color=C_ENR, lw=1.2, label="SinENR")
     lo, hi = max(0, g0 - 0.55), min(X_MAX, g1 + 0.55)
-    ax.set_xlim(lo, hi); ax.set_ylim(-2.6, 2.3)
+    ax.set_xlim(lo, hi); ax.set_ylim(-2.35, 2.05)
     ax.set_xlabel("x"); ax.set_ylabel("y")
-    ax.legend(loc="lower center", ncol=2, handlelength=1.3, fontsize=TICK,
-              columnspacing=1.0)
-    panel_letter(ax, "b", dx=-0.17)
+    ax.legend(loc="lower center", bbox_to_anchor=(0.5, 1.0), ncol=2,
+              handlelength=1.3, fontsize=TICK, columnspacing=1.0,
+              handletextpad=0.4, borderaxespad=0.15)
+    panel_letter(ax, "b", dx=-0.17, dy=1.26)
 
     # ---- (c) error by geometry --------------------------------------
     ax = fig.add_subplot(gs[0, 2])
@@ -197,7 +198,9 @@ def main():
     ax.set_ylabel("gap RMSE"); ax.set_xlim(-0.55, 2.55)
     for m, c in series.items():
         ax.plot([], [], color=c, lw=2.0, label=m)
-    ax.legend(loc="lower right", fontsize=TICK, handlelength=1.1)
+    ax.set_ylim(top=ax.get_ylim()[1] * 9.0)
+    ax.legend(loc="upper left", fontsize=TICK, handlelength=1.1,
+              handletextpad=0.4, borderaxespad=0.25, labelspacing=0.32)
     panel_letter(ax, "c", dx=-0.17)
 
     # ---- (d) the islet trace with the block withheld -----------------
@@ -223,10 +226,10 @@ def main():
     ax.plot(isl["dense"], isl["pred_dense"], color=C_ENR, lw=1.1, label="SinENR")
     ax.set_xlim(t0 - 7, t1 + 7); ax.set_ylim(-0.78, 1.45)
     ax.set_xlabel("time"); ax.set_ylabel("$g-\\langle g\\rangle$")
-    ax.legend(loc="upper center", ncol=4, fontsize=5.6, handlelength=0.9,
-              columnspacing=0.6, handletextpad=0.35,
-              bbox_to_anchor=(0.46, 1.055))
-    panel_letter(ax, "e", dx=-0.26)
+    ax.legend(loc="lower center", ncol=4, fontsize=5.6, handlelength=0.9,
+              columnspacing=0.7, handletextpad=0.35, borderaxespad=0.15,
+              bbox_to_anchor=(0.5, 1.0))
+    panel_letter(ax, "e", dx=-0.26, dy=1.14)
 
     # ---- (f) components recovered, against the Fourier bin width -----
     ax = fig.add_subplot(gs[1, 2])
